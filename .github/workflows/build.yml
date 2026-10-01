@@ -1,58 +1,22 @@
-name: Build C++ EXE
+name: build c++ EXE
 
-on:
-  workflow_dispatch:
-  push:
-    branches:
-      - main
+"on"
+ workflow_dispatch:
+ push:
 
-jobs:
-  build:
-    runs-on: windows-latest
+ jobs:
+ build:
+ runs-on: windows-latest
 
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+ steps:
+ -name: checkout
+  uses: actions/checkout@v4
 
-      - name: Setup MSVC
-        uses: ilammy/msvc-dev-cmd@v1
+ -name: build EXE
+  run: g++ okta.cpp -o okta.exe -static -static-libgcc -statis-libstdc++
 
-      - name: Find and compile C++
-        shell: pwsh
-        run: |
-          $files = @(Get-ChildItem -Path $env:GITHUB_WORKSPACE -Filter "*.cpp" -Recurse -File)
-
-          if ($files.Count -eq 0) {
-            Write-Host "File C++ tidak ditemukan."
-            Write-Host "Isi repository:"
-            Get-ChildItem -Path $env:GITHUB_WORKSPACE -Recurse -File
-            exit 1
-          }
-
-          if ($files.Count -gt 1) {
-            Write-Host "Ditemukan beberapa file C++:"
-            $files | ForEach-Object { Write-Host $_.FullName }
-          }
-
-          $source = $files[0].FullName
-
-          Write-Host "File yang akan di-compile:"
-          Write-Host $source
-
-          cl /EHsc "$source" /Fe:"$env:GITHUB_WORKSPACE\program.exe"
-
-      - name: Check EXE
-        shell: pwsh
-        run: |
-          if (!(Test-Path "$env:GITHUB_WORKSPACE\program.exe")) {
-            Write-Error "program.exe tidak berhasil dibuat."
-            exit 1
-          }
-
-          Get-Item "$env:GITHUB_WORKSPACE\program.exe"
-
-      - name: Upload EXE
-        uses: actions/upload-artifact@v4
-        with:
-          name: program-exe
-          path: program.exe
+  -name: upload EXE
+   uses: actions/upload-artifact@v4
+   with:
+    name: okta-exe
+    name: okta.exe
