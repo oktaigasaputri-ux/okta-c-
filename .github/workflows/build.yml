@@ -17,8 +17,21 @@ jobs:
       - name: Setup MSVC
         uses: ilammy/msvc-dev-cmd@v1
 
+      - name: Show files
+        shell: pwsh
+        run: Get-ChildItem -Path . -Recurse -File | Select-Object FullName
+
       - name: Compile C++
-        run: cl /EHsc "okta c++.cpp" /Fe:program.exe
+        shell: pwsh
+        run: |
+          $cpp = Get-ChildItem -Path . -Filter "*.cpp" -Recurse | Select-Object -First 1
+          if (-not $cpp) {
+            Write-Error "File .cpp tidak ditemukan!"
+            exit 1
+          }
+
+          Write-Host "Compiling: $($cpp.FullName)"
+          cl /EHsc "$($cpp.FullName)" /Fe:program.exe
 
       - name: Upload EXE
         uses: actions/upload-artifact@v4
