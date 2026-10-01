@@ -1,0 +1,17 @@
+#include <iostream>
+using namespace std;
+int main() {
+    string nama;
+    string sekolah;
+    cout<<"masukkan nama"<<endl;
+    cin>>nama;
+    cout<<"masukkan sekolahmu";
+    cin>>sekolah;
+    cout<<"namamu adalah ";
+    cin>>nama;
+    cout<<"sekolahmu di";
+    cin>>sekolah;
+    system ("pause");
+
+    return 0;
+}
