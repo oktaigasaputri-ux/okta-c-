@@ -1,37 +1,55 @@
 name: Build C++ EXE
 
 on:
+  workflow_dispatch:
   push:
     branches:
       - main
-  workflow_dispatch:
 
 jobs:
   build:
     runs-on: windows-latest
 
     steps:
-      - name: Checkout repository
+      - name: Checkout
         uses: actions/checkout@v4
 
       - name: Setup MSVC
         uses: ilammy/msvc-dev-cmd@v1
 
-      - name: Show files
-        shell: pwsh
-        run: Get-ChildItem -Path . -Recurse -File | Select-Object FullName
-
-      - name: Compile C++
+      - name: Find and compile C++
         shell: pwsh
         run: |
-          $cpp = Get-ChildItem -Path . -Filter "*.cpp" -Recurse | Select-Object -First 1
-          if (-not $cpp) {
-            Write-Error "File .cpp tidak ditemukan!"
+          $files = @(Get-ChildItem -Path $env:GITHUB_WORKSPACE -Filter "*.cpp" -Recurse -File)
+
+          if ($files.Count -eq 0) {
+            Write-Host "File C++ tidak ditemukan."
+            Write-Host "Isi repository:"
+            Get-ChildItem -Path $env:GITHUB_WORKSPACE -Recurse -File
             exit 1
           }
 
-          Write-Host "Compiling: $($cpp.FullName)"
-          cl /EHsc "$($cpp.FullName)" /Fe:program.exe
+          if ($files.Count -gt 1) {
+            Write-Host "Ditemukan beberapa file C++:"
+            $files | ForEach-Object { Write-Host $_.FullName }
+          }
+
+          $source = $files[0].FullName
+
+          Write-Host "File yang akan di-compile:"
+          Write-Host $source
+
+          cl /EHsc "$source" /Fe:"$env:GITHUB_WORKSPACE\program.exe"
+
+      - name: Check EXE
+        shell: pwsh
+        run: |
+          if (!(Test-Path "$env:GITHUB_WORKSPACE\program.exe")) {
+            Write-Error "program.exe tidak berhasil dibuat."
+            exit 1
+          }
+
+          Get-Item "$env:GITHUB_WORKSPACE\program.exe"
 
       - name: Upload EXE
         uses: actions/upload-artifact@v4
